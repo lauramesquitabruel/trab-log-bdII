@@ -27,3 +27,16 @@ AFTER INSERT OR UPDATE OR DELETE ON memoria
 FOR EACH ROW
 EXECUTE FUNCTION atualiza_log();
 
+BEGIN;
+INSERT INTO memoria (num) VALUES (123), (111), (12), (234), (38), (642);
+UPDATE memoria SET num = num+62 WHERE num < 100;
+END;
+
+INSERT INTO memoria (num) VALUES (321), (76), (879), (15), (21), (999);
+
+DELETE from memoria WHERE num = 111;
+
+BEGIN;
+INSERT INTO memoria (num) VALUES (13), (14);
+DELETE FROM memoria WHERE num <= 16;
+
