@@ -1,0 +1,25 @@
+{
+  "name": "trab-log-bdii",
+  "version": "1.0.0",
+  "description": "",
+  "main": "database.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lauramesquitabruel/trab-log-bdII.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lauramesquitabruel/trab-log-bdII/issues"
+  },
+  "homepage": "https://github.com/lauramesquitabruel/trab-log-bdII#readme",
+  "dependencies": {
+    "express": "^5.1.0",
+    "pg": "^8.16.0"
+  },
+  "type": "module"
+}

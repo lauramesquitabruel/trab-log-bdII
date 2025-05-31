@@ -1,47 +1,44 @@
-/*
+import express from 'express';
+import { Client } from 'pg';
 
-Imprimir quais transações devem realizar o REDO. 
-
-Reportar quais dados foram atualizados;
-
-Seguir o fluxo de execução conforme o método de REDO, conforme visto em aula; 
-
-
-
-tem q olhar as q commitaram
-
-*/
-
-const { Client } = require('pg');
-
-//pra conecta com o banco
+//conexão com o banco de dados
 const client = new Client({
-
   user: 'postgres',
   host: 'localhost',
   database: 'bd2',
-  password: 'postgres',       
-  port: 5432,       
-
+  password: 'postgres',
+  port: 5432,
 });
 
+const app = express();
 
-
-async function PegaLog() {
-  
+//executa o REDO
+async function executeRedo() {
+  try {
     await client.connect();
-    const res = await client.query('SELECT * FROM log');
-    //aqui pega os log 
+    console.log('Conectado ao banco de dados');
+
+    //obtém todos os logs de operações commitadas
+    const resultado = await client.query('SELECT operacao, id_tabela_memoria AS id, num FROM log');
+    const logs = resultado.rows;
+    console.log(resultado);
+
+    if (logs.length === 0) {
+      console.log('Nenhuma transação commitada encontrada para REDO');
+      return;
+    }
     
-    const logRegistros = res.rows;
-    console.log(logRegistros);
+  } catch (error) {
+    console.error('Erro durante o processo de REDO:', error);
+  } finally {
     await client.end();
-    return logRegistros;
- 
+  }
+    
 }
 
-
-PegaLog();
-
-
+//inicia o servidor
+app.listen(3000, async () => {
+  console.log('Servidor rodando na porta 3000');
+  await executeRedo();
+});
 
