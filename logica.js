@@ -19,7 +19,7 @@ async function executeRedo() {
     console.log('Conectado ao banco de dados');
 
     //obtém todos os logs de operações commitadas
-    const resultado = await client.query('SELECT operacao, id_tabela_memoria AS id, num FROM log');
+    const resultado = await client.query('SELECT operacao, id_tabela_memoria AS id, num, id_transacao FROM log');
     const logs = resultado.rows;
     console.log(resultado);
 
@@ -27,7 +27,41 @@ async function executeRedo() {
       console.log('Nenhuma transação commitada encontrada para REDO');
       return;
     }
-    
+
+    console.log(`\nForam encontradas ${logs.length} operações commitadas para processar`);
+
+    const transacoes = {};
+    logs.forEach(log => {
+      if (!transacoes[log.id_transacao]) {
+        transacoes[log.id_transacao] = [];
+      }
+      transacoes[log.id_transacao].push(log);
+    });
+
+    //processa cada transação e aplicar REDO
+    for (const [transacaoId, transacaoLogs] of Object.entries(transacoes)) {
+      console.log(`\nProcessando transação ${transacaoId} (${transacaoLogs.length} operações)`);
+
+       for (const log of transacaoLogs) {
+        try {
+          //aplica a operação no banco de dados
+          let updateQuery;
+          switch (log.operacao) {
+            //AINDA TO PENSANDO
+            default:
+              console.log(`Operação ${log.operacao} não reconhecida - ignorando`);
+              continue;
+          }
+        } catch (error) {
+          console.error(`  - Erro ao aplicar REDO para operação ${log.num}:`, error.message);
+        }
+      }
+
+      console.log(`Transação ${transacaoId} processada com sucesso`);
+    }
+
+    console.log('\nProcesso de REDO concluído com sucesso');
+
   } catch (error) {
     console.error('Erro durante o processo de REDO:', error);
   } finally {
