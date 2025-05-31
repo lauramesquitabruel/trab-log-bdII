@@ -41,7 +41,27 @@ async function executaRedo() {
     for (const log of logs) {
       try {
         switch (log.operacao) {
-          //AINDA TO PENSANDO 
+          case 'INSERT':
+            await client.query(
+              'INSERT INTO memoria (id, num) VALUES ($1, $2)',
+              [log.id, log.num]
+            );
+            break;
+          
+          case 'UPDATE':
+            await client.query(
+              'UPDATE memoria SET num = $1 WHERE id = $2',
+              [log.num, log.id]
+            );
+            break;
+          
+          case 'DELETE':
+            await client.query(
+              'DELETE FROM memoria WHERE id = $1',
+              [log.id]
+            );
+            break;
+          
           default:
             console.log(`Operação ${log.operacao} não reconhecida`);
             continue;
@@ -50,6 +70,10 @@ async function executaRedo() {
         console.error(`Erro processando ${log.id}:`, error.message);
       }
     }
+
+    const tabelaMemoria = await client.query('SELECT * FROM memoria ORDER BY id');
+    console.log('Tabela MEMORIA:');
+    console.log(tabelaMemoria.rows);
 
   } catch (error) {
     console.error('Erro durante o processo de REDO:', error);
