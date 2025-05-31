@@ -27,6 +27,30 @@ async function executaRedo() {
       await client.query('CREATE UNLOGGED TABLE memoria (id SERIAL PRIMARY KEY, num INT)');
     }
 
+    //recupera os operações salvas na tabela log
+    const resultado = await client.query('SELECT operacao, id_tabela_memoria AS id, num FROM log ORDER BY id');
+    const logs = resultado.rows;
+
+    if (logs.length === 0) {
+      console.log('Nenhuma transação encontrada');
+      return;
+    }
+
+    console.log(`\nForam encontradas ${logs.length} operações commitadas para processar`);
+
+    for (const log of logs) {
+      try {
+        switch (log.operacao) {
+          //AINDA TO PENSANDO 
+          default:
+            console.log(`Operação ${log.operacao} não reconhecida`);
+            continue;
+        }
+      } catch (error) {
+        console.error(`Erro processando ${log.id}:`, error.message);
+      }
+    }
+
   } catch (error) {
     console.error('Erro durante o processo de REDO:', error);
   } finally {
