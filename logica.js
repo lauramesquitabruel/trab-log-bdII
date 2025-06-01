@@ -14,18 +14,9 @@ async function executaRedo() {
     await client.connect();
     console.log('Conectado ao banco de dados');
 
-    //verifica se a tabela ainda existe
-    const verificaTabela = await client.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_name = 'memoria'
-      );
-    `);
-
-    if (!verificaTabela.rows[0].exists) {
-      console.log('Criando tabela em memória');
-      await client.query('CREATE UNLOGGED TABLE memoria (id SERIAL PRIMARY KEY, num INT)');
-    }
+    console.log('Recriando tabela MEMORIA');
+    await client.query('DROP TABLE IF EXISTS memoria');
+    await client.query('CREATE UNLOGGED TABLE memoria (id SERIAL PRIMARY KEY, num INT)');
 
     //recupera os operações salvas na tabela log
     const resultado = await client.query('SELECT operacao, id_tabela_memoria AS id, num FROM log ORDER BY id');
@@ -38,36 +29,38 @@ async function executaRedo() {
 
     console.log(`\nForam encontradas ${logs.length} operações commitadas para processar`);
 
-    for (const log of logs) {
+    //processa cada log
+    for (let i = 0; i < logs.length; i++) {
+      const log = logs[i];
       try {
         switch (log.operacao) {
           case 'INSERT':
-            await client.query(
-              'INSERT INTO memoria (id, num) VALUES ($1, $2)',
-              [log.id, log.num]
-            );
+            // INSERT ON CONFLICT evita erros de chave duplicada
+            await client.query(`
+              INSERT INTO memoria (id, num) VALUES ($1, $2)
+              ON CONFLICT (id) 
+              DO UPDATE SET num = EXCLUDED.num
+            `, [log.id, log.num]);
             break;
           
           case 'UPDATE':
-            await client.query(
-              'UPDATE memoria SET num = $1 WHERE id = $2',
-              [log.num, log.id]
-            );
+            await client.query(`
+              INSERT INTO memoria (id, num)
+              VALUES ($1, $2)
+              ON CONFLICT (id)
+              DO UPDATE SET num = EXCLUDED.num
+            `, [log.id, log.num]);
             break;
           
           case 'DELETE':
-            await client.query(
-              'DELETE FROM memoria WHERE id = $1',
-              [log.id]
-            );
+            await client.query('DELETE FROM memoria WHERE id = $1', [log.id]);
             break;
           
           default:
-            console.log(`Operação ${log.operacao} não reconhecida`);
-            continue;
+            console.log(`Operação desconhecida: ${log.operacao} - ignorando`);
         }
       } catch (error) {
-        console.error(`Erro processando ${log.id}:`, error.message);
+        console.error(`Erro processando ${i+1}:`, error.message);
       }
     }
 
