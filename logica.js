@@ -19,7 +19,7 @@ async function executaRedo() {
     await client.query('CREATE UNLOGGED TABLE memoria (id SERIAL PRIMARY KEY, num INT)');
 
     //recupera os operações salvas na tabela log
-    const resultado = await client.query('SELECT operacao, id_tabela_memoria AS id, num FROM log ORDER BY id');
+    const resultado = await client.query('SELECT operacao, id_tabela_memoria AS id, num FROM log');
     const logs = resultado.rows;
 
     if (logs.length === 0) {
