@@ -27,15 +27,13 @@ async function executaRedo() {
       return;
     }
 
-    console.log(`\nForam encontradas ${logs.length} operações commitadas para processar`);
-
     //processa cada log
     for (let i = 0; i < logs.length; i++) {
       const log = logs[i];
       try {
         switch (log.operacao) {
           case 'INSERT':
-            // INSERT ON CONFLICT evita erros de chave duplicada
+            //INSERT ON CONFLICT evita erros de chave duplicada
             await client.query(`
               INSERT INTO memoria (id, num) VALUES ($1, $2)
               ON CONFLICT (id) 
